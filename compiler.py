@@ -71,41 +71,42 @@ class ÇParser(Parser):
         print('\n# symbol_table:', self.symbol_table)
         
     # ---------------- functions ----------------
-        @_('function functions')
-        def functions(self, p):
-            pass
+    @_('function functions')
+    def functions(self, p):
+        pass
             
-        @_('')
-        def functions(self,p):
-            pass
+    @_('')
+    def functions(self,p):
+        pass
         
-        @_('NAME "(" parameters ")"')
-        def function_name(self, p):
-            print('.begin', p.NAME, p.parameters)
-            # Adicionar nomes dos parâmetros na tabela de símbolos
-        
-        @_('VOID function_name "{" statements "}"')
-        def function(self, p):
-            print('LOAD_CONST None')
-            print('RETURN_VALUE')
-            print('.end')
-            print('# symbol_table', self.symbol_table)  # imprimir (symbol_table)
-            self.symbol_table.clear()  # E após zerar a tabela
+    @_('NAME "(" parameters ")"')
+    def function_name(self, p):
+        print('.begin', p.NAME, p.parameters)
+        # Adicionar nomes dos parâmetros na tabela de símbolos
+        for param in p.parameters.split(' '):
+            self.symbol_table.append(param)
             
+            
+    @_("VOID function_name '{' statements '}'")
+    def function(self,p):
+        print('LOAD CONST None')
+        print('RETURN_VALUE')
+        print('.end')
+        self.symbol_table.clear()
 
 
-        # ---------------- parameters ----------------
-        @_('INT_NAME')
-        def parameters(self,p):
-            return p.NAME
+    # ---------------- parameters ----------------
+    @_('INT NAME')
+    def parameters(self,p):
+        return p.NAME
         
-        @_('')
-        def parameters(self,p):
-            return ''
+    @_('')
+    def parameters(self,p):
+        return ''
         
-        @_('INT_NAME "," parameters')
-        def parameters(self,p):
-            return p.NAME + ' ' + p.parameters
+    @_('INT NAME "," parameters')
+    def parameters(self,p):
+        return p.NAME + ' ' + p.parameters
         
         
 
