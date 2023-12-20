@@ -109,149 +109,91 @@ class ÇParser(Parser):
 
     # ---------------- main ----------------
 
-    @_('INT MAIN "(" ")" "{" statements "}"')
-    def main(self, p):
-        print('LOAD_CONST None')
-        print('RETURN_VALUE')
+@_('INT MAIN "(" ")" "{" statements "}"')
+def main(self, p):
+    print('LOAD_CONST None')
+    print('RETURN_VALUE')
 
-    # ---------------- statements ----------------
+# ---------------- statements ----------------
 
-    @_('statement statements')
-    def statements(self, p):
-        pass
+@_('statement statements')
+def statements(self, p):
+    pass
 
-    @_('')
-    def statements(self, p):
-        pass
+@_('')
+def statements(self, p):
+    pass
 
-    # ---------------- statement ----------------
+# ---------------- statement ----------------
 
-    @_('printf')
-    def statement(self, p):
-        print()
+@_('printf')
+def statement(self, p):
+    print()
 
-    @_('declaration')
-    def statement(self, p):
-        print()
+@_('declaration')
+def statement(self, p):
+    print()
 
-    @_('attribution')
-    def statement(self, p):
-        print()
+@_('attribution')
+def statement(self, p):
+    print()
 
-    @_('if_st')
-    def statement(self, p):
-        print()
-        
-    @_('while_st')
-    def statement(self,p):
-        print()
-        
-    @_('call')
-    def statement(self,p):
-        print()
-        
-    # ---------------- call ----------------
-    @_('NAME "(" ")" ";"')
-    def call(self,p):
-        print('LOAD_FAST',p.NAME)
-        print('CALL_FUNCTION',0)
-        print('POP_TOP') 
-        
-    # ---------------- arguments ----------------
-    @_('expression "," arguments')
-    def arguments(self,p):
-        return 1 + p.arguments
+@_('if_st')
+def statement(self, p):
+    print()
     
-    @_('expression')
-    def arguments(self,p):
-        return 1
+@_('while_st')
+def statement(self,p):
+    print()
     
-    @_('')
-    def arguments(self,p):
-        return 0
-        
-    # ---------------- printf ----------------
-
-    @_('STRING')
-    def printf_format(self, p):
-        print('LOAD_GLOBAL', 'print')
-        print('LOAD_CONST', p.STRING)
-
-    @_('PRINTF "(" printf_format "," expression ")" ";"')
-    def printf(self, p):
-        print('BINARY_MODULO')
-        print('CALL_FUNCTION', 1)
-        print('POP_TOP')
-
-    # ---------------- declaration ----------------
+@_('call')
+def statement(self,p):
+    print()
     
-    @_('INT NAME "=" expression ";"')
-    def declaration(self, p):
-        if p.NAME in self.symbol_table:
-            self.show_error(f"cannot redeclare variable '{p.NAME}'")
-        else:
-            self.symbol_table.append(p.NAME)
-            print('STORE_FAST', p.NAME)
+# ---------------- call ----------------
+@_('NAME "(" ")" ";"')
+def call(self,p):
+    print('LOAD_FAST',p.NAME)
+    print('CALL_FUNCTION',0)
+    print('POP_TOP') 
+    
+# ---------------- arguments ----------------
+@_('expression "," arguments')
+def arguments(self,p):
+    return 1 + p.arguments
 
-    # ---------------- if ----------------
-    @_('IF "(" expression COMP expression ")" "{" statements "}"')
-    def if_st(self, p):
-        pass
-    # ---------------- attribution ----------------
+@_('expression')
+def arguments(self,p):
+    return 1
 
-    @_('NAME "=" expression ";"')
-    def attribution(self, p):
-        if p.NAME not in self.symbol_table:
-            self.show_error(f"variable '{p.NAME}' not declared") 
+@_('')
+def arguments(self,p):
+    return 0
+    
+# ---------------- printf ----------------
+
+@_('STRING')
+def printf_format(self, p):
+    print('LOAD_GLOBAL', 'print')
+    print('LOAD_CONST', p.STRING)
+
+@_('PRINTF "(" printf_format "," expression ")" ";"')
+def printf(self, p):
+    print('BINARY_MODULO')
+    print('CALL_FUNCTION', 1)
+    print('POP_TOP')
+
+# ---------------- declaration ----------------
+
+@_('INT NAME "=" expression ";"')
+def declaration(self, p):
+    if p.NAME in self.symbol_table:
+        self.show_error(f"cannot redeclare variable '{p.NAME}'")
+    else:
+        self.symbol_table.append(p.NAME)
         print('STORE_FAST', p.NAME)
 
-    # ---------------- expression ----------------
-
-    @_('expression "+" term')
-    def expression(self, p):
-        print('BINARY_ADD')
-
-    @_('expression "-" term')
-    def expression(self, p):
-        print('BINARY_SUBTRACT')
-
-    @_('term')
-    def expression(self, p):
-        pass
-
-    # ---------------- term ----------------
-
-    @_('term "*" factor')
-    def term(self, p):
-        print('BINARY_MULTIPLY')
-
-    @_('term "/" factor')
-    def term(self, p):
-        print('BINARY__DIVIDE')
-    
-    @_('term "%" factor')
-    def term(self, p):
-        print('BINARY__MODULO')
-
-    @_('factor')
-    def term(self, p):
-        pass
-
-    # ---------------- factor ----------------
-
-    @_('NUMBER')
-    def factor(self, p):
-        print('LOAD_CONST', p.NUMBER)
-
-    @_('"(" expression ")"')
-    def factor(self, p):
-        pass
-
-    @_('NAME')
-    def factor(self, p):
-        if p.NAME not in self.symbol_table:
-            self.show_error(f"unknown variable '{p.NAME}'", p.lineno)
-        print('LOAD_FAST', p.NAME)
+# ---------------- if ----------------
 
 #################### MAIN ####################
 
@@ -259,13 +201,73 @@ lexer = ÇLexer()
 parser = ÇParser()
 
 if len(sys.argv) > 1:
-    sys.stdin = open(sys.argv[1], 'r')
-    
-    if len(sys.argv) > 2:
-        sys.stdout = open(sys.argv[2], 'w')
+sys.stdin = open(sys.argv[1], 'r')
+
+if len(sys.argv) > 2:
+    sys.stdout = open(sys.argv[2], 'w')
 
 text = sys.stdin.read()
 parser.parse(lexer.tokenize(text))
+
+
+@_('IF "(" expression COMP expression ")" "{" statements "}"')
+def if_st(self, p):
+    pass
+# ---------------- attribution ----------------
+
+@_('NAME "=" expression ";"')
+def attribution(self, p):
+    if p.NAME not in self.symbol_table:
+        self.show_error(f"variable '{p.NAME}' not declared") 
+    print('STORE_FAST', p.NAME)
+
+# ---------------- expression ----------------
+
+@_('expression "+" term')
+def expression(self, p):
+    print('BINARY_ADD')
+
+@_('expression "-" term')
+def expression(self, p):
+    print('BINARY_SUBTRACT')
+
+@_('term')
+def expression(self, p):
+    pass
+
+# ---------------- term ----------------
+
+@_('term "*" factor')
+def term(self, p):
+    print('BINARY_MULTIPLY')
+
+@_('term "/" factor')
+def term(self, p):
+    print('BINARY__DIVIDE')
+
+@_('term "%" factor')
+def term(self, p):
+    print('BINARY__MODULO')
+
+@_('factor')
+def term(self, p):
+    pass
+
+# ---------------- factor ----------------
+
+@_('NUMBER')
+def factor(self, p):
+    print('LOAD_CONST', p.NUMBER)
+
+@_('"(" expression ")"')
+def factor(self, p):
+    pass
+
+@_('NAME')
+def factor(self, p):
+    if p.NAME not in self.symbol_table:
+        self.show_error(f"unknown variable '{p.NAME}'", p.lineno)
+    print('LOAD_FAST', p.NAME)
 
 # IF
 
