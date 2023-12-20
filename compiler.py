@@ -13,7 +13,7 @@ from sly import Lexer, Parser
 class ÇLexer(Lexer):
     
     # token definitions
-    literals = {';', '+', '-', '*', '/', '(', ')', '{', '}', ',', '=', '%'}
+    literals = {';', '+', '-', '*', '/', '(', ')', '{', '}', ',', '=', '%', '[', ']'}
     tokens = {STDIO, INT, MAIN, PRINTF, IF, WHILE, STRING, NUMBER, NAME, COMP, VOID}
     VOID = 'void'
     STDIO   = '#include <stdio.h>'
@@ -148,16 +148,19 @@ class ÇParser(Parser):
     @_('while_st')
     def statement(self,p):
         print()
-        
+    
     @_('call')
     def statement(self,p):
         print()
         
     # ---------------- call ----------------
-    @_('NAME "(" ")" ";"')
+    @_('NAME')
+    def call_name(self,p):
+        print('LOAD_NAME',p.NAME)
+    
+    @_('call_name "(" arguments ")" ";"')
     def call(self,p):
-        print('LOAD_FAST',p.NAME)
-        print('CALL_FUNCTION',0)
+        print('CALL_FUNCTION',p.arguments)
         print('POP_TOP') 
         
     # ---------------- arguments ----------------
@@ -168,7 +171,7 @@ class ÇParser(Parser):
     @_('expression')
     def arguments(self,p):
         return 1
-
+    
     @_('')
     def arguments(self,p):
         return 0
@@ -196,12 +199,15 @@ class ÇParser(Parser):
             self.symbol_table.append(p.NAME)
             print('STORE_FAST', p.NAME)
     
-    # ---------------- if ----------------
-    #@_('IF "(" expression COMP expression ")" "{" statements "}"')
+    
+    
+
+   # ---------------- if ----------------
+   
+   
+   #@_('IF "(" expression COMP expression ")" "{" statements "}"')
     #def if_st(self, p):
     #    pass
-
-    # IF
 
     @_('expression COMP expression')
     def if_comparison(self,p):
@@ -217,9 +223,14 @@ class ÇParser(Parser):
         print(f"NOT_IF_{self.if_stack.pop()}")
 
     # ---------------- while ----------------
-    @_('')
+    @_('WHILE')
     def while_begin(self,p):
         print(f"BEGIN_WHILE_{self.while_counter}")
+    
+    @_('expression COMP expression')
+    def while_comparison(self,p):
+        pass
+    
     @_('WHILE "(" expression ")" "{" statements "}"')
     def while_st(self, p):
         print('SETUP_LOOP')
@@ -299,10 +310,3 @@ if len(sys.argv) > 2:
 
 text = sys.stdin.read()
 parser.parse(lexer.tokenize(text))
-
-
-
-
-
-
-    
