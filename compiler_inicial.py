@@ -47,16 +47,13 @@ class ÇLexer(Lexer):
 
 class ÇParser(Parser):
     tokens = ÇLexer.tokens
-    # fazer init?
     symbol_table = []
     if_stack = []
     if_counter = 0
 
     def __init__(self):
         pass
-        
 
-    # error handling method
     def show_error(self, msg, line=None):
         if line:
             msg += ' in line ' + str(line)
@@ -70,43 +67,34 @@ class ÇParser(Parser):
         print('\n# symbol_table:', self.symbol_table)
         
     # ---------------- functions ----------------
-        @_('function functions')
-        def functions(self, p):
-            pass
-            
-        @_('')
-        def functions(self,p):
-            pass
-        
-        @_('NAME "(" parameters ")"')
-        def function_name(self, p):
-            print('.begin', p.NAME, p.parameters)
-            # Adicionar nomes dos parâmetros na tabela de símbolos
-        
-        @_('VOID function_name "{" statements "}"')
-        def function(self, p):
-            print('LOAD_CONST None')
-            print('RETURN_VALUE')
-            print('.end')
-            print('# symbol_table', self.symbol_table)  # imprimir (symbol_table)
-            self.symbol_table.clear()  # E após zerar a tabela
-            
 
+    @_('function functions')
+    def functions(self, p):
+        pass
+            
+    @_('')
+    def functions(self,p):
+        pass
+        
+    @_('NAME "(" parameters ")" "{" statements "}"')
+    def function(self, p):
+        print('.begin', p.NAME, p.parameters)
+        self.symbol_table.append(p.NAME)
+        print('LOAD_CONST None')
+        print('RETURN_VALUE')
+        print('.end')
+        print('# symbol_table', self.symbol_table)  # imprimir (symbol_table)
+        self.symbol_table.pop()
 
-        # ---------------- parameters ----------------
-        @_('INT_NAME')
-        def parameters(self,p):
-            return p.NAME
-        
-        @_('')
-        def parameters(self,p):
-            return ''
-        
-        @_('INT_NAME "," parameters')
-        def parameters(self,p):
-            return p.NAME + ' ' + p.parameters
-        
-        
+    # ---------------- parameters ----------------
+
+    @_('INT NAME')
+    def parameters(self, p):
+        return p.NAME
+    
+    @_('parameters "," INT NAME')
+    def parameters(self, p):
+        return p.parameters + ' ' + p.NAME
 
     # ---------------- main ----------------
 
@@ -150,15 +138,19 @@ class ÇParser(Parser):
     @_('call')
     def statement(self,p):
         print()
-        
+
     # ---------------- call ----------------
+
     @_('NAME "(" ")" ";"')
     def call(self,p):
-        print('LOAD_FAST',p.NAME)
-        print('CALL_FUNCTION',0)
+        if p.NAME not in self.symbol_table:
+            self.show_error(f"procedure '{p.NAME}' not declared") 
+        print('LOAD_FAST', p.NAME)
+        print('CALL_FUNCTION', 0)
         print('POP_TOP') 
-        
+
     # ---------------- arguments ----------------
+
     @_('expression "," arguments')
     def arguments(self,p):
         return 1 + p.arguments
@@ -193,8 +185,9 @@ class ÇParser(Parser):
         else:
             self.symbol_table.append(p.NAME)
             print('STORE_FAST', p.NAME)
-    
+            
     # ---------------- if ----------------
+
     @_('IF "(" expression COMP expression ")" "{" statements "}"')
     def if_st(self, p):
         pass
@@ -268,10 +261,9 @@ class ÇParser(Parser):
     # IF
 
     @_('expression COMP expression')
-    def if_comparison(self,p):
+    def if_compaison(self,p):
         print('COMPARE_OP',p.COMP)
-        label = 'NOT_IF' + str
-        {self.if_counter}
+        label = 'NOT_IF' + str(self.if_counter)
         print('POP_JUMP_IF_FALSE',label)
         self.if_stack.append(label)
         self.if_counter += 1
@@ -279,7 +271,7 @@ class ÇParser(Parser):
     @_('IF "(" if_comparison ")" "{" statements "}"')
     def if_st(self,p):
         print(self.if_stack.pop())
-            
+
 #################### MAIN ####################
 
 lexer = ÇLexer()
@@ -293,10 +285,3 @@ if len(sys.argv) > 2:
 
 text = sys.stdin.read()
 parser.parse(lexer.tokenize(text))
-
-
-
-
-
-
-    
