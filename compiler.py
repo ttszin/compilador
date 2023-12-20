@@ -47,13 +47,14 @@ class ÇLexer(Lexer):
 
 class ÇParser(Parser):
     tokens = ÇLexer.tokens
-    # fazer init?
-    symbol_table = []
-    if_stack = []
-    if_counter = 0
-
+    
     def __init__(self):
-        pass
+        self.symbol_table = []
+        self.if_stack = []
+        self.while_stack = []
+        self.while_counter = []
+        self.if_counter = 1
+        self.while_counter = 1
         
 
     # error handling method
@@ -195,12 +196,29 @@ class ÇParser(Parser):
             print('STORE_FAST', p.NAME)
     
     # ---------------- if ----------------
-    @_('IF "(" expression COMP expression ")" "{" statements "}"')
-    def if_st(self, p):
-        pass
+    #@_('IF "(" expression COMP expression ")" "{" statements "}"')
+    #def if_st(self, p):
+    #    pass
+
+    # IF
+
+    @_('expression COMP expression')
+    def if_comparison(self,p):
+        print('COMPARE_OP',p.COMP)
+        #label = 'NOT_IF' + str
+        print('POP_JUMP_IF_FALSE', f"{self.if_counter}")
+        #print('POP_JUMP_IF_FALSE',label)
+        self.if_stack.append(self.if_counter)
+        self.if_counter += 1
+        
+    @_('IF "(" if_comparison ")" "{" statements "}"')
+    def if_st(self,p):
+        print(f"NOT_IF_{self.if_stack.pop()}")
 
     # ---------------- while ----------------
-
+    @_('')
+    def while_begin(self,p):
+        print(f"BEGIN_WHILE_{self.while_counter}")
     @_('WHILE "(" expression ")" "{" statements "}"')
     def while_st(self, p):
         print('SETUP_LOOP')
@@ -265,20 +283,7 @@ class ÇParser(Parser):
             self.show_error(f"unknown variable '{p.NAME}'", p.lineno)
         print('LOAD_FAST', p.NAME)
 
-    # IF
 
-    @_('expression COMP expression')
-    def if_comparison(self,p):
-        print('COMPARE_OP',p.COMP)
-        label = 'NOT_IF' + str
-        {self.if_counter}
-        print('POP_JUMP_IF_FALSE',label)
-        self.if_stack.append(label)
-        self.if_counter += 1
-        
-    @_('IF "(" if_comparison ")" "{" statements "}"')
-    def if_st(self,p):
-        print(self.if_stack.pop())
             
 #################### MAIN ####################
 
