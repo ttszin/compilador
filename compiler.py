@@ -203,41 +203,20 @@ class ÇParser(Parser):
     
 
    # ---------------- if ----------------
-   
-   
-   #@_('IF "(" expression COMP expression ")" "{" statements "}"')
-    #def if_st(self, p):
-    #    pass
 
-    @_('expression COMP expression')
-    def if_comparison(self,p):
-        print('COMPARE_OP',p.COMP)
-        #label = 'NOT_IF' + str
-        print('POP_JUMP_IF_FALSE', f"{self.if_counter}")
-        #print('POP_JUMP_IF_FALSE',label)
-        self.if_stack.append(self.if_counter)
+    @_('IF "(" expression COMP expression ")" "{" statements "}"')
+    def if_st(self, p):
+        print(f'NOT_IF_{self.if_counter}:')
         self.if_counter += 1
-        
-    @_('IF "(" if_comparison ")" "{" statements "}"')
-    def if_st(self,p):
-        print(f"NOT_IF_{self.if_stack.pop()}")
 
-    # ---------------- while ----------------
-    @_('WHILE')
-    def while_begin(self,p):
-        print(f"BEGIN_WHILE_{self.while_counter}")
-    
-    @_('expression COMP expression')
-    def while_comparison(self,p):
-        pass
-    
-    @_('WHILE "(" expression ")" "{" statements "}"')
+    # ---------------- while ----------------    
+    @_('WHILE "(" expression COMP expression ")" "{" statements "}"')
     def while_st(self, p):
-        print('SETUP_LOOP')
-        print(f'NOT_IF{self.if_counter}:')
-        self.if_stack.append(f'NOT_IF{self.if_counter}')
-        self.if_counter += 1
-        pass
+        print(f'BEGIN_WHILE_{self.while_counter}:')
+        self.while_counter += 1
+        print(f'END_WHILE_{self.while_counter}:')
+        print('LOAD_CONST', 'None')
+        print('RETURN_VALUE')
 
     # ---------------- attribution ----------------
 

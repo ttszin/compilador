@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# Ç version 2.0
+
 # USAGE:
 # python3 compiler.py [input_file [output_file]]
 
@@ -11,15 +13,23 @@ from sly import Lexer, Parser
 class ÇLexer(Lexer):
     
     # token definitions
-    literals = {';', '+', '-', '*', '/', '(', ')', '{', '}', ',', '='}
-    tokens = {STDIO, INT, MAIN, PRINTF, STRING, NUMBER, NAME}
-    STDIO   = '#include <stdio.h>'
-    INT     = 'int'
-    MAIN    = 'main'
-    PRINTF  = 'printf'
-    STRING  = r'"[^"]*"'
-    NUMBER  = r'\d+'
-    NAME    = r'[a-z]+'
+    # token definitions
+    literals = {';', '+', '-', '*', '/', '(', ')', '{', '}', ',', '=', '%', '[', ']'}
+    tokens = {STDIO, INT, MAIN, PRINTF, IF, STRING, NUMBER, COMP, NAME}
+    STDIO = '#include <stdio.h>'
+    INT = 'int'
+    MAIN = 'main'
+    PRINTF = 'printf'
+    IF = 'if'
+    COMP = r'(==|!=|>=|<=|>|<)'
+    STRING = r'"[^"]*"'
+    NUMBER = r'\d+'
+    NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
+
+
+
+
+
 
     # ignored characters and patterns
     ignore = r' \t'
@@ -39,24 +49,59 @@ class ÇLexer(Lexer):
 
 class ÇParser(Parser):
     tokens = ÇLexer.tokens
+    
+    def __init__(self):
+        self.symbol_table = []
+        self.if_counter = 1
 
     # error handling method
-    def error(self, mesg):
-        print(mesg, file=sys.stderr)
+    def show_error(self, msg, line=None):
+        if line:
+            msg += ' in line ' + str(line)
+            print('error:', msg, file=sys.stderr)
         sys.exit(1)
         
     # ---------------- program ----------------
 
-    @_('STDIO main')
+    @_('STDIO functions main')
     def program(self, p):
+        print('\n# symbol_table:', self.symbol_table)
+
+    # ---------------- functions ----------------
+    @_('function functions')
+    def functions(self, p):
         pass
+            
+    @_('')
+    def functions(self,p):
+        pass
+
+    @_('NAME "(" parameters ")" "{" statements "}"')
+    def function(self, p):
+        print(f'.begin {p.NAME} {p.parameters}')
+        for param in p.parameters.split(' '):
+            self.symbol_table.append(param)
+        pass
+
+    # ---------------- parameters ----------------
+    @_('INT NAME')
+    def parameters(self,p):
+        return p.NAME
+        
+    @_('')
+    def parameters(self,p):
+        return ''
+        
+    @_('INT NAME "," parameters')
+    def parameters(self,p):
+        return p.NAME + ' ' + p.parameters
 
     # ---------------- main ----------------
 
     @_('INT MAIN "(" ")" "{" statements "}"')
     def main(self, p):
-        print('LOAD_CONST None')
-        print('RETURN_VALUE')
+        print('LOAD_CONST 2')
+        print('STORE_NAME a')
 
     # ---------------- statements ----------------
 
@@ -70,95 +115,70 @@ class ÇParser(Parser):
 
     # ---------------- statement ----------------
 
-    @_('printf')
+    @_('if_st')
     def statement(self, p):
-        print()
+        pass
 
     @_('declaration')
     def statement(self, p):
-        print()
+        pass
 
-    @_('attribution')
+    @_('printf')
     def statement(self, p):
-        print()
+        pass
+
+    # ---------------- if ----------------
+
+    @_('IF "(" expression COMP expression ")" "{" statements "}"')
+    def if_st(self, p):
+        print(f'LOAD_NAME {p.expression0}')
+        print(f'LOAD_CONST {p.expression1}')
+        print(f'COMPARE_OP {p.COMP}')
+        print(f'POP_JUMP_IF_FALSE NOT_IF_{self.if_counter}')
+        pass
+
+    # ---------------- declaration ----------------
+
+    @_('INT NAME "=" expression ";"')
+    def declaration(self, p):
+        print(f'STORE_NAME {p.NAME}')
+        pass
 
     # ---------------- printf ----------------
 
-    @_('STRING')
-    def printf_format(self, p):
-        print('LOAD_GLOBAL', 'print')
-        print('LOAD_CONST', p.STRING)
-
-    @_('PRINTF "(" printf_format "," expression ")" ";"')
+    @_('PRINTF "(" STRING "," expression ")" ";"')
     def printf(self, p):
+        print('LOAD_GLOBAL print')
+        print(f'LOAD_CONST {p.STRING}')
+        print(f'LOAD_NAME {p.expression}')
         print('BINARY_MODULO')
-        print('CALL_FUNCTION', 1)
+        print('CALL_FUNCTION 1')
         print('POP_TOP')
-
-    # ---------------- declaration ----------------
-    
-    @_('INT NAME "=" expression ";"')
-    def declaration(self, p):
-        print('STORE_NAME', p.NAME)
-    
-    # ---------------- attribution ----------------
-
-    @_('NAME "=" expression ";"')
-    def attribution(self, p): 
-        print('STORE_NAME', p.NAME)
+        pass
 
     # ---------------- expression ----------------
 
-    @_('expression "+" term')
-    def expression(self, p):
-        print('BINARY_ADD')
-
-    @_('expression "-" term')
-    def expression(self, p):
-        print('BINARY_SUBTRACT')
-
-    @_('term')
-    def expression(self, p):
-        pass
-
-    # ---------------- term ----------------
-
-    @_('term "*" factor')
-    def term(self, p):
-        print('BINARY_MULTIPLY')
-
-    @_('term "/" factor')
-    def term(self, p):
-        print('BINARY_DIVIDE')
-
-    @_('factor')
-    def term(self, p):
-        pass
-
-    # ---------------- factor ----------------
-
     @_('NUMBER')
-    def factor(self, p):
-        print('LOAD_CONST', p.NUMBER)
-
-    @_('"(" expression ")"')
-    def factor(self, p):
-        pass
+    def expression(self, p):
+        return p.NUMBER
 
     @_('NAME')
-    def factor(self, p):
-        print('LOAD_NAME', p.NAME)
+    def expression(self, p):
+        return p.NAME
 
 #################### MAIN ####################
 
 lexer = ÇLexer()
 parser = ÇParser()
 
-if len(sys.argv) > 1:
-    sys.stdin = open(sys.argv[1], 'r')
-    
-    if len(sys.argv) > 2:
-        sys.stdout = open(sys.argv[2], 'w')
+text = """#include <stdio.h>
 
-text = sys.stdin.read()
+int main() {
+    int a = 2;
+    if (a < 3) {
+        a = 4;
+    }
+    printf("%d\n", a);
+}"""
+
 parser.parse(lexer.tokenize(text))

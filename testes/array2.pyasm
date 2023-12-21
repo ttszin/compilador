@@ -1,0 +1,36 @@
+# #include <stdio.h>
+    LOAD_CONST          0
+    LOAD_CONST          None
+    IMPORT_NAME         runtime
+    IMPORT_STAR
+
+# int b[8];
+    LOAD_NAME           array_zero
+    LOAD_CONST          8
+    CALL_FUNCTION       1
+    STORE_NAME          b
+    
+# b[7] = 6;
+    LOAD_NAME           b
+    LOAD_CONST          7
+    LOAD_CONST          6
+    ROT_THREE
+    STORE_SUBSCR
+
+# printf("%d\n",
+    LOAD_GLOBAL         print
+    LOAD_CONST          "%d\n"
+# b[7]
+    LOAD_NAME           b
+    LOAD_CONST          7
+    BINARY_SUBSCR
+# );
+    BINARY_MODULO
+    CALL_FUNCTION       1
+    POP_TOP
+
+    LOAD_CONST          None
+    RETURN_VALUE
+
+# symbol_table: ['b']
+
